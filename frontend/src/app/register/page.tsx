@@ -1,20 +1,22 @@
 "use client";
 
 import { useRouter } from "next/navigation";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import * as crypto from "crypto";
 
 const registerUser = async (
   username: string,
   password: string,
-  email: string
+  email: string,
+  country: string
 ) => {
   const token = crypto.pbkdf2Sync(password, username, 1000, 64, "sha512");
 
   const userData = {
     username: username,
-    token: token,
+    token: token.toString('hex'),
     email: email,
+    country: country,
   };
 
   const res = await fetch("http://localhost:8000/register", {
@@ -33,22 +35,55 @@ export default function Register() {
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [email, setEmail] = useState("");
+  const [country, setCountry] = useState("");
+  const [detectedIp, setDetectedIp] = useState("");
+  const [isLoadingCountry, setIsLoadingCountry] = useState(true);
   const [error, setError] = useState("");
+
+  useEffect(() => {
+    const fetchCountry = async () => {
+      setIsLoadingCountry(true);
+      try {
+        const res = await fetch("/api/ip-details");
+        if (res.ok) {
+          const data = await res.json();
+          setCountry(data.country || 'País não detectado');
+          setDetectedIp(data.ip || 'IP não detectado');
+        } else {
+          setCountry('País não detectado');
+          setDetectedIp('IP não detectado');
+          console.error("Erro ao buscar país:", await res.text());
+        }
+      } catch (err) {
+        setCountry('Erro ao buscar país');
+        setDetectedIp('Erro ao buscar IP');
+        console.error("Erro de rede ao buscar país/IP:", err);
+      } finally {
+        setIsLoadingCountry(false);
+      }
+    };
+
+    fetchCountry();
+  }, []);
 
   const handleSubmit = async (e: any) => {
     e.preventDefault();
-    await registerUser(username, password, email).then(
+    await registerUser(username, password, email, country).then(
       async (res: Response) => {
         if (res.ok) {
           console.log("Usuário registrado com sucesso!");
           const data = await res.json();
           router.push(`activate2FA/${data.id}`);
         } else {
-          console.log("Erro ao registrar usuário");
-          setError("Erro ao registrar usuário");
+          const errorData = await res.json().catch(() => ({ message: "Erro desconhecido ao registrar." }));
+          console.log("Erro ao registrar usuário:", errorData);
+          setError(errorData.message || "Erro ao registrar usuário");
         }
       }
-    );
+    ).catch(err => {
+      console.error("Erro na requisição de registro:", err);
+      setError("Não foi possível conectar ao servidor para registrar.");
+    });
   };
 
   return (
@@ -62,6 +97,35 @@ export default function Register() {
         <form className="mt-8 space-y-6" onSubmit={handleSubmit}>
           <input type="hidden" name="remember" defaultValue="true" />
           <div className="rounded-md shadow-sm -space-y-px">
+            <div>
+              <label htmlFor="country" className="block text-sm font-medium text-gray-700 pt-2">
+                País Detectado
+              </label>
+              <input
+                id="country"
+                name="country"
+                type="text"
+                required
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-700 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-gray-100"
+                placeholder={isLoadingCountry ? "Detectando país..." : "País"}
+                value={country}
+                readOnly
+              />
+            </div>
+            <div className="pt-2">
+              <label htmlFor="detectedIp" className="block text-sm font-medium text-gray-700">
+                Seu IP Detectado
+              </label>
+              <input
+                id="detectedIp"
+                name="detectedIp"
+                type="text"
+                className="appearance-none rounded-none relative block w-full px-3 py-2 border border-gray-300 placeholder-gray-500 text-gray-700 rounded-md focus:outline-none focus:ring-indigo-500 focus:border-indigo-500 focus:z-10 sm:text-sm bg-gray-100 mt-1"
+                placeholder={isLoadingCountry ? "Detectando IP..." : "IP"}
+                value={detectedIp}
+                readOnly
+              />
+            </div>
             <div>
               <label htmlFor="email" className="sr-only">
                 email
