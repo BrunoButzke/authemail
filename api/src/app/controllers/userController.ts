@@ -68,8 +68,12 @@ export const activate2FA = async (req: Request, res: Response) => {
 
   const otp = secret.otpauth_url;
   if (otp != undefined) {
-    await qrcode.toDataURL(otp, (err, qrcode) => {
-      return res.send({ qrcode: qrcode });
+    await qrcode.toDataURL(otp, (err: Error | null | undefined, qrDataURL?: string) => {
+      if (err || !qrDataURL) {
+        console.error("Erro ao gerar QR Code:", err);
+        return res.status(500).send({ message: "Erro ao gerar QR Code para 2FA" });
+      }
+      return res.send({ qrcode: qrDataURL });
     });
   } else {
     return res.status(400).send("Error generating otp");
