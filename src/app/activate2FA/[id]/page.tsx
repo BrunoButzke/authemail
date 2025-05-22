@@ -16,7 +16,7 @@ const Activate2FA = ({ params }: { params: { id: string } }) => {
       };
 
       try {
-        const res = await fetch("http://localhost:8000/activate2FA", {
+        const res = await fetch("/api/activate2FA", {
           method: "POST",
           headers: {
             "Content-Type": "application/json",

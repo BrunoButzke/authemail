@@ -73,7 +73,7 @@ const ChatPage = ({
       cipherMsg: msg,
     };
 
-    const res = await fetch("http://localhost:8000/message", {
+    const res = await fetch("/api/message", {
       method: "POST",
       headers: {
         "Content-Type": "application/json",

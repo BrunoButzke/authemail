@@ -1,8 +1,22 @@
 {
+  "version": 2,
+  "builds": [
+    {
+      "src": "api/package.json",
+      "use": "@vercel/node",
+      "config": {
+        "includeFiles": ["api/dist/**"]
+      }
+    },
+    {
+      "src": "package.json",
+      "use": "@vercel/next"
+    }
+  ],
   "rewrites": [
     {
-      "source": "/(.*)",
-      "destination": "/frontend/$1"
+      "source": "/api/(.*)",
+      "destination": "/api"
     }
   ]
 }

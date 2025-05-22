@@ -10,7 +10,7 @@ const sendCode = async (id: string, code: string) => {
     code: code,
   };
 
-  const res = await fetch("http://localhost:8000/authCode", {
+  const res = await fetch("/api/authCode", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",

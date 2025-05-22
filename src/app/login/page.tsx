@@ -12,7 +12,7 @@ const loginUser = async (username: string, password: string) => {
     token: token,
   };
 
-  const res = await fetch("http://localhost:8000/login", {
+  const res = await fetch("/api/login", {
     method: "POST",
     headers: {
       "Content-Type": "application/json",
