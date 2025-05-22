@@ -5,7 +5,7 @@
       "src": "api/package.json",
       "use": "@vercel/node",
       "config": {
-        "includeFiles": ["api/dist/**"]
+        "includeFiles": ["api/dist/**", "api/src/app/db/users.json"]
       }
     },
     {
